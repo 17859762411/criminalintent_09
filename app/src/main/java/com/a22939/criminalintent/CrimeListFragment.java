@@ -1,22 +1,27 @@
 package com.a22939.criminalintent;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Date;
 import java.util.List;
 
 public class CrimeListFragment extends Fragment {
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
+    private static int mCrimeIndex;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -30,6 +35,11 @@ public class CrimeListFragment extends Fragment {
         updateUI();
 
         return view;
+    }
+    @Override
+    public void onResume(){
+        super.onResume();
+        updateUI();
     }
 
     private class PoliceHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -68,15 +78,23 @@ public class CrimeListFragment extends Fragment {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
 
-        mAdapter = new CrimeAdapter(crimes);
-        mCrimeRecyclerView.setAdapter(mAdapter);
+        if (mAdapter == null){
+            mAdapter = new CrimeAdapter(crimes);
+            mCrimeRecyclerView.setAdapter(mAdapter);
+        }else {
+            //重绘当前可见区域
+            //mAdapter.notifyDataSetChanged();
+
+            //部分重绘
+            mAdapter.notifyItemChanged(mCrimeIndex);
+        }
     }
 
     private class CrimeHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener {
 
         private Crime mCrime;
-
+        private ImageView mSolvedImageView;
         private TextView mTitleTextView;
         private TextView mDateTextView;
 
@@ -86,19 +104,31 @@ public class CrimeListFragment extends Fragment {
 
             mTitleTextView = (TextView) itemView.findViewById(R.id.crime_title);
             mDateTextView = (TextView) itemView.findViewById(R.id.crime_date);
+            mSolvedImageView = (ImageView)itemView.findViewById(R.id.crime_solved);
         }
 
         public void bind(Crime crime) {
             mCrime = crime;
             mTitleTextView.setText(mCrime.getTitle());
-            mDateTextView.setText(mCrime.getDate().toString());
+
+            Date date = crime.getDate();
+            CharSequence cs = "EEEE,MMM dd,yyyy";//星期，月份 几号，几年例如：星期一，十一月 5， 2018
+            CharSequence re = DateFormat.format(cs,date);
+            String dateFormat = re.toString();
+            mDateTextView.setText(dateFormat);
+            //mDateTextView.setText(mCrime.getDate().toString());
+            mSolvedImageView.setVisibility(crime.isSolved() ? View.VISIBLE : View.GONE);
         }
 
         @Override
         public void onClick(View view) {
-            Toast.makeText(getActivity(),
-                    mCrime.getTitle() + " clicked!", Toast.LENGTH_SHORT)
-                    .show();
+//            Toast.makeText(getActivity(),
+//                    mCrime.getTitle() + " clicked!", Toast.LENGTH_SHORT)
+//                    .show();
+            Intent intent = CrimeActivity.newIntent(getActivity(),mCrime.getId());
+            mCrimeIndex = getAdapterPosition();//返回数据在Adapter中的位置
+            //Log.d("onClick","mCrimeIndex "+mCrimeIndex);
+            startActivity(intent);
         }
     }
 
