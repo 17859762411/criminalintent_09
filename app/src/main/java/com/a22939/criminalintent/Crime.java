@@ -1,5 +1,4 @@
 package com.a22939.criminalintent;
-
 import java.util.Date;
 import java.util.UUID;
 
@@ -9,15 +8,6 @@ public class Crime {
     private String mTitle;
     private Date mDate;
     private boolean mSolved;
-    private boolean mRequiresPolice;
-
-    public boolean isRequiresPolice() {
-        return mRequiresPolice;
-    }
-
-    public void setRequiresPolice(boolean requiresPolice) {
-        mRequiresPolice = requiresPolice;
-    }
 
     public Crime() {
         mId = UUID.randomUUID();
